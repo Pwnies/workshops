@@ -4,39 +4,63 @@ import json
 import time
 import logging
 
+'''
+requires:
+    pycryptodome
+    flask
+'''
+
 from hashlib import sha256
 
-from flask import request, current_app, redirect, url_for, Flask
+from flask import Flask
+from flask import request
+from flask import redirect
+from flask import Response
+from flask import current_app
+from flask import url_for
+
 from functools import wraps
+
 from Crypto.Cipher import AES
 
 app = Flask(__name__)
 key = os.urandom(16)
 
+## Authentication system ##
+
 AUTH = 'auth'
 
 def nonce():
-    return sha256(str(int(time.time()))).digest()[:8]
+    raw = sha256(str(int(time.time()))).digest()
+    return raw[:8]
+
+def gcm_encrypt(key, pt):
+    iv = nonce()
+    cf = AES.new(key, AES.MODE_GCM, iv)
+    ct, tag = cf.encrypt_and_digest(pt)
+    return iv + ct + tag
+
+def gcm_decrypt(key, ct):
+    iv  = ct[:8]
+    tag = ct[-16:]
+    ct  = ct[8:-16]
+    cf  = AES.new(key, AES.MODE_GCM, iv)
+    pt  = cf.decrypt_and_verify(ct, tag)
+    return pt
 
 def make_cookie():
-    pt = json.dumps({'id': os.urandom(16).encode('hex'), 'admin': 0})
-    no = nonce()
-    cf = AES.new(
-        key,
-        mode=AES.MODE_GCM,
-        nonce=no
-    )
-    ct = no + cf.encrypt(pt)
+    pt = json.dumps({
+        'id': os.urandom(16).encode('hex'),
+        'admin': 0
+    })
+    ct = gcm_encrypt(key, pt)
     return ct.encode('hex')
 
 def load_cookie(ct):
-    ct = ct.decode('hex')
-    cf = AES.new(
+    pt = gcm_decrypt(
         key,
-        mode=AES.MODE_GCM,
-        nonce=ct[:8]
+        ct.decode('hex')
     )
-    pt = cf.decrypt(ct[8:])
     return json.loads(pt)
 
 def login_required(admin):
@@ -56,7 +80,7 @@ def login_required(admin):
                     return redirect('/')
 
             except:
-                app.logger.info('invalid cookie :(')
+                app.logger.info('invalid cookie')
                 response = current_app.make_response(redirect('/'))
                 response.set_cookie(AUTH, value=make_cookie())
                 return response
@@ -65,18 +89,25 @@ def login_required(admin):
         return decorated_function
     return decor
 
+## Web app & handlers ##
+
 @app.route('/')
-@app.route('/index')
+@login_required(admin = False)
+def code_page():
+    with open(sys.argv[0], 'r') as f:
+        return Response(f.read(), mimetype='text/plain')
+
+@app.route('/time')
 @login_required(admin = False)
 def index_page():
     t = time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime())
     return 'Time is flying: <b>%s</b>' % t
 
-@app.route('/admin')
+@app.route('/flag')
 @login_required(admin = True)
 def admin_page():
     with open('flag', 'r') as f:
-        return f.read()
+        return Response(f.read(), mimetype='text/plain')
 
 app.logger.addHandler(logging.StreamHandler(sys.stdout))
 app.logger.setLevel(logging.INFO)
