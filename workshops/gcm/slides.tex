@@ -13,21 +13,75 @@
 \frame{\titlepage}
 
 \begin{frame}
+\frametitle{Mode of operation}
+\begin{center}
+\includegraphics[height=0.5\textheight]{block_cipher.png}
+\end{center}
+\end{frame}
+
+\begin{frame}
+\frametitle{Mode of operation}
+\begin{center}
+\includegraphics[width=\textwidth]{mode-ecb.png}
+\end{center}
+\end{frame}
+
+\begin{frame}
+\frametitle{Mode of operation}
+\begin{center}
+\includegraphics[width=\textwidth]{mode-ctr.png}
+\end{center}
+\end{frame}
+
+\begin{frame}
 \frametitle{Authenticated encryption}
-Why
+\begin{center}
+Encryption $\neq$ Authentication
+\end{center}
 \end{frame}
 
 \begin{frame}
 \frametitle{Galois Counter Mode (motivation)}
-\includegraphics[width=\textwidth]{evariste_galois}
+\begin{center}
+\includegraphics[height=0.7\textheight]{mode-gcm.png}
+\end{center}
+\end{frame}
+
+\begin{frame}
+\frametitle{Galois Counter Mode (motivation)}
+\begin{center}
+\includegraphics[height=0.7\textheight]{mode-gcm.png}
+\end{center}
+So what is $mult_{H}(\cdot)$?
 \end{frame}
 
 \begin{frame}
 \frametitle{Some algebra}
+\begin{center}
+$mult_{H}(\cdot)$ is multiplication by $H$, \\
+but not quite the way you might think...
+\end{center}
 \end{frame}
 
 \begin{frame}
 \frametitle{Rings}
+\[
+    (E, \cdot, +)
+\]
+St.
+\[
+    e_{1} \cdot (e_{2} + e_{3})
+    =
+    e_{1} \cdot e_{2}
+    +
+    e_{1} \cdot e_{3}
+\]
+\[
+    \forall e_{1} :
+    \exists e_{2} :
+    e_{1} + e_{2} = 0
+\]
+Examples:
 \[
     \mathbb{Z}
 \]
@@ -35,6 +89,11 @@ Why
 
 \begin{frame}
 \frametitle{Fields}
+Ring.
+\[
+    (E, \cdot, +)
+\]
+St.
 \[
     \mathbb{Q}, \mathbb{R}
 \]
@@ -62,7 +121,28 @@ What implication does it have for bit-slicing techniques?
 \end{frame}
 
 \begin{frame}
-\frametitle{Galois Counter Mode (operation)}
+\frametitle{Multiplication of polynomials over GF(2)}
+\end{frame}
+
+\begin{frame}
+\frametitle{Additional resources}
+So $mult_{H}(\cdot) : GF(2^{128}) \to GF(2^{128})$ \\
+\vspace{3mm}
+\textbf{Courses}
+\begin{itemize}
+    \item Algebra 1 @ Department of Mathematical Sciences (UCPH)
+    \item Algebra 2 @ Department of Mathematical Sciences (UCPH)
+    \item Computational Discrete Math @ DTU
+\end{itemize}
+\textbf{Books}
+\begin{itemize}
+    \item Algebra (2nd Edition) : Micheal Artin
+    \item Abstract Algebra : Dummit \& Foote
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Galois Counter Mode (MAC calculation)}
 \end{frame}
 
 \begin{frame}
@@ -81,8 +161,8 @@ sage or go to \url{https://cocalc.com/app}
 
 \begin{frame}
 \frametitle{Nonce reuse attack}
-Theorists \& mathematicians care about proofs. \\
-Hackers care about assumptions.
+Theorists care about proofs. \\
+Pragmatists care about assumptions.
 \end{frame}
 
 \begin{frame}
