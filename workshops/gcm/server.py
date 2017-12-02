@@ -57,10 +57,12 @@ def make_cookie():
     return ct.encode('hex')
 
 def load_cookie(ct):
+    print ct
     pt = gcm_decrypt(
         key,
         ct.decode('hex')
     )
+    print 'authenticity validated:', pt
     return json.loads(pt)
 
 def login_required(admin):
