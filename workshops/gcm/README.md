@@ -20,3 +20,11 @@ that we can reliably choose a new nonce with every encryption,
 an assumption which is often violated in practice...
 
 This leads to a total break.
+
+# Preparation
+
+For this attack we will rely on a system called SageMath (FOSS) to manipulate algebraic structures.
+SageMath can be downloaded [here](https://www.sagemath.org/),
+however there is also an online interactive shell at [CoCalc](https://cocalc.com/) which is sufficient for our purposes.
+
+Please sign up for CoCalc or install SageMath locally before the workshop :)
