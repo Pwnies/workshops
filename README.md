@@ -8,14 +8,15 @@ this includes:
 
 # Upcoming workshops
 
-| Date       | Author | Title                                                              | Description                                        |
-|------------|--------|--------------------------------------------------------------------|----------------------------------------------------|
-| 2017-12-21 | rot256 | GCM; The illegal attack                                            | [workshops/gcm/README.md](workshops/gcm/README.md) |
-| 2018-01-11 | kriztw | Intro: Shellcode and binary exploitation                           | TODO                                               |
-| 2018-01-25 | Kokjo  | Automatic ROP chain generation                                     | TODO                                               |
-| 2018-02-08 | rot256 | Radare; Symbolic is all the [r4ge](https://github.com/gast04/r4ge) | TODO                                               |
-| xxxx-yy-zz | rot256 | Heaps of fun; glibc and beyond                                     | TODO                                               |
-| xxxx-yy-zz | you?   |                                                                    |                                                    |
+| Date       | Author     | Title                                                              | Description                                        |
+|------------|------------|--------------------------------------------------------------------|----------------------------------------------------|
+| 2017-12-21 | rot256     | GCM; The illegal attack                                            | [workshops/gcm/README.md](workshops/gcm/README.md) |
+| 2018-01-11 | kriztw     | Intro: Shellcode and binary exploitation                           | TODO                                               |
+| 2018-01-25 | Kokjo      | Automatic ROP chain generation                                     | TODO                                               |
+| 2018-02-08 | rot256     | Radare; Symbolic is all the [r4ge](https://github.com/gast04/r4ge) | TODO                                               |
+|        TBA | rot256     | Heaps of fun; exploiting glibc and beyond                          | TODO                                               |
+|        TBA | rot256 + ? | Reverse engineering [EVM](https://en.wikipedia.org/wiki/Ethereum#Architecture) code (Ethereum)                             | TODO                                               |
+| xxxx-yy-zz | you?       |                                                                    |                                                    |
 
 # Workshop format
 
