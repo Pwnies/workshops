@@ -27,4 +27,6 @@ For this attack we will rely on a system called SageMath (FOSS) to manipulate al
 SageMath can be downloaded [here](https://www.sagemath.org/),
 however there is also an online interactive shell at [CoCalc](https://cocalc.com/) which is sufficient for our purposes.
 
-Please sign up for CoCalc or install SageMath locally before the workshop :)
+Please sign up for CoCalc or install SageMath, either by downloading from [sagemath.org](http://www.sagemath.org/) or by using docker:
+
+> docker pull sagemath/sagemath
