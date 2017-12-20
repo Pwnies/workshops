@@ -1,5 +1,9 @@
 \documentclass{beamer}
 
+% Add
+%  -- generation of authentication key (H)
+%  -- field & ring definitions
+
 \usepackage{graphicx}
 \usepackage[utf8]{inputenc}
 
@@ -11,6 +15,20 @@
 \begin{document}
 
 \frame{\titlepage}
+
+\begin{frame}
+\frametitle{Before we start : Get Sage}
+
+\textbf{Fill your disk} \\
+\texttt{docker pull sagemath/sagemath}
+\url{https://www.sagemath.org/}
+
+\vspace{3mm}
+
+\textbf{Or, sign up at} \\
+\url{https://cocalc.com/}
+
+\end{frame}
 
 \begin{frame}
 \frametitle{Mode of operation}
@@ -89,18 +107,21 @@ Examples:
 
 \begin{frame}
 \frametitle{Fields}
-Ring.
 \[
-    (E, \cdot, +)
+    (E, \cdot, +, 0, 1)
 \]
-St.
+Ring + multiplicative inverses, e.i.
+\[
+    \forall x \exists y : x \cdot y = 1
+\]
+Usually denote $y = x^{-1}$. Examples:
 \[
     \mathbb{Q}, \mathbb{R}
 \]
 \end{frame}
 
 \begin{frame}
-\frametitle{Rings \& Fields}
+\frametitle{Finite fields}
 We will primarily be dealing with the field of two elements:
 $1, 0$ \\
 Where:
@@ -117,11 +138,83 @@ What implication does it have for bit-slicing techniques?
 \end{frame}
 
 \begin{frame}
-\frametitle{Polynomials over Rings}
+\frametitle{Polynomials over fields}
+Given a field. We may consider the polynomials over the field. \\
+E.g. for\ GF(2):
+\[
+    f(x) = x^{7} + x^{4} + x^{1} + 1
+\]
+\[
+    g(x) = x^{6} + x^{3}
+\]
+We write this as $\mathbb{F}[x]$
 \end{frame}
 
 \begin{frame}
 \frametitle{Multiplication of polynomials over GF(2)}
+Lets focus on GF(2)[x].
+
+\vspace{3mm}
+
+Addition happens coefficient wise
+and multiplication also happens as you would expect:
+\[
+    f(x) = x^{7} + x^{4} + x^{1} + 1
+\]
+\[
+    g(x) = x^{6} + x^{3}
+\]
+\[
+    f(x) \cdot g(x)
+    =
+    x^{6} f(x) +
+    x^{3} f(x)
+    = (x^{13} + x^{10} + x^{7} + x^{6})
+    + (x^{10} + x^{7} + x^{4} + x^{3})
+\]
+\[
+    = x^{13} + x^{6} + x^{4} + x^{3}
+\]
+Question: Recall the definition! Is this a ring?
+\end{frame}
+
+\begin{frame}
+\frametitle{Multiplication of polynomials over GF(2)}
+Lets focus on GF(2)[x].
+
+\vspace{3mm}
+
+\[
+    f(x) = x^{7} + x^{4} + x^{1} + 1
+\]
+\[
+    g(x) = x^{6} + x^{3}
+\]
+Question: We can represent the polynomials as bit strings,
+e.g.
+$f(x) \sim 10010011$,
+$g(x) \sim 01001000$ what does xor of bit strings correspond to in the ring?
+What does left shifting of bit strings correspond to?
+\end{frame}
+
+\begin{frame}
+\frametitle{From GF(2)[x] to GF($2^{128}$)}
+
+Take my word for it:
+We can transform the ring of polynomials into a field by reducing
+modulo a particular class of polynomials in the ring, so called `primitive' polynomials.
+
+\vspace{3mm}
+
+For instance $GF(2)[x] \to GF(2^{4})$, by reducing modulo $x^{2} + 1$:
+Since $ f = (x^{5} + x^{3} + x^{2} + x + 1) (x^{2} + 1)$, $f \cong 0 \mod x^{2} + 1$
+$ g = (x^{4} + x^{2} + x + 1) \cdot (x^{2} + 1) + (x + 1)$, $g \cong x + 1 \mod x^{2} + 1$
+
+\end{frame}
+
+\begin{frame}
+\frametitle{From GF(2)[x] to GF($2^{128}$)}
+Reduction in GF(2)[x] / p(x). Easy!
 \end{frame}
 
 \begin{frame}
@@ -139,6 +232,7 @@ So $mult_{H}(\cdot) : GF(2^{128}) \to GF(2^{128})$ \\
     \item Algebra (2nd Edition) : Micheal Artin
     \item Abstract Algebra : Dummit \& Foote
 \end{itemize}
+Break?
 \end{frame}
 
 \begin{frame}
@@ -167,10 +261,6 @@ Pragmatists care about assumptions.
 
 \begin{frame}
 \frametitle{Work session}
-\end{frame}
-
-\begin{frame}
-\frametitle{Truncated nonce attack}
 \end{frame}
 
 \end{document}
