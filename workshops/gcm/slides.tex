@@ -237,6 +237,68 @@ Break?
 
 \begin{frame}
 \frametitle{Galois Counter Mode (MAC calculation)}
+Authentication key $H \in GF(2^{128})$. \\
+Output blocks: $ct_{1}, ct_{2}, \ldots, ct_{n}$ (last padded with zero) \\
+Make a block: $len(A) || len(C)$ (length in bits) \\
+
+\vspace{3mm}
+
+For every block add, then multiply with the authentication key.
+Basically:
+\texttt{foldl (\textbackslash a x -> (a + x) * H) 0 cs}
+
+\vspace{3mm}
+
+Finally add a random (deterministically generated element) $E_{k}$
+\end{frame}
+
+\begin{frame}
+\frametitle{Galois Counter Mode (MAC calculation)}
+Alternatively we can consider it as evaluation the polynomial:
+\[
+    w(y) = c_{1} y^{n} + \ldots + c_{n} y^{2} + c_{n+1} y^{1} + E_{k} \in GF(2^{128})[y]
+\]
+At $H$, e.i. $T = w(H)$.
+This will be useful.
+\end{frame}
+
+\begin{frame}
+\frametitle{Galois Counter Mode (MAC calculation)}
+Consider the case where, the MAC is computed on two different messages $c$, $c'$,
+but $E_{k} = E'_{k}$.
+We know:
+\[
+    T = w(H) = c_{1} H^{n} + \ldots + c_{n} H^{2} + c_{n+1} H^{1} + E_{k}
+\]
+\[
+    T' = w'(H) = c'_{1} H^{m} + \ldots + c'_{m} H^{2} + c'_{m+1} H^{1} + E_{k}
+\]
+Move terms over:
+\[
+    0 = c_{1} H^{n} + \ldots + c_{n} H^{2} + c_{n+1} H^{1} + E_{k} + w(H)
+\]
+\[
+    0 = c'_{1} H^{m} + \ldots + c'_{m} H^{2} + c'_{m+1} H^{1} + E_{k} + w'(H)
+\]
+\end{frame}
+
+\begin{frame}
+\frametitle{Galois Counter Mode (MAC calculation)}
+\[
+    0 = c_{1} H^{n} + \ldots + c_{n} H^{2} + c_{n+1} H^{1} + E_{k} + w(H)
+\]
+\[
+    0 = c'_{1} H^{m} + \ldots + c'_{m} H^{2} + c'_{m+1} H^{1} + E_{k} + w'(H)
+\]
+Subtract:
+\begin{align}
+    0 &=
+    (c_{1} H^{n} + \ldots + c_{n} H^{2} + c_{n+1} H^{1} + E_{k} + w(H)) - \\
+    & \ \ \ \ (c'_{1} H^{m} + \ldots + c'_{m} H^{2} + c'_{m+1} H^{1} + E_{k} + w'(H)) \\
+    &=(c_{1} H^{n} + \ldots + c_{n} H^{2} + c_{n+1} H^{1} + w(H)) + \\
+    & \ \ \ \ (c'_{1} H^{m} + \ldots + c'_{m} H^{2} + c'_{m+1} H^{1} + w'(H))
+\end{align}
+So $H$ is a root of $(w(y) - T) - (w'(y) - T)$. Easy?
 \end{frame}
 
 \begin{frame}
@@ -247,20 +309,23 @@ Break?
  - \url{https://www.sagemath.org/}
 \end{frame}
 
-\begin{frame}
-\frametitle{SageMath}
-sage or go to \url{https://cocalc.com/app}
-\end{frame}
-
-
-\begin{frame}
-\frametitle{Nonce reuse attack}
-Theorists care about proofs. \\
-Pragmatists care about assumptions.
-\end{frame}
-
-\begin{frame}
+\begin{frame}[fragile]
 \frametitle{Work session}
+
+Go to \url{http://rot256.io:8080} for the challenge.
+
+\vspace{3mm}
+
+The algebraic structures we will be needing in Sage:
+
+\begin{verbatim}
+F.<x> = GF(2^128, 'x', x^128 + x^7 + x^2 + x + 1)
+G.<y> = PolynomialRing(F)
+\end{verbatim}
+
+There is a \verb!doit.sage! template at \url{https://rot256.io/doit.sage}. \\
+Containing useful helpers if you wish to use these in the attack.
+
 \end{frame}
 
 \end{document}

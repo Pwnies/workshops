@@ -1,7 +1,7 @@
 import requests
 
-target = 'rot256.io:8080'
-target = 'http://localhost:5000'
+target = 'http://rot256.io:8080'
+# target = 'http://localhost:5000'
 
 def sample():
     ses = requests.Session()
