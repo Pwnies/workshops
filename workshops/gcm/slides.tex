@@ -61,14 +61,14 @@ Encryption $\neq$ Authentication
 \begin{frame}
 \frametitle{Galois Counter Mode (motivation)}
 \begin{center}
-\includegraphics[height=0.7\textheight]{mode-gcm.png}
+\includegraphics[height=0.8\textheight]{mode-gcm.png}
 \end{center}
 \end{frame}
 
 \begin{frame}
 \frametitle{Galois Counter Mode (motivation)}
 \begin{center}
-\includegraphics[height=0.7\textheight]{mode-gcm.png}
+\includegraphics[height=0.8\textheight]{mode-gcm.png}
 \end{center}
 So what is $mult_{H}(\cdot)$?
 \end{frame}
@@ -84,21 +84,73 @@ but not quite the way you might think...
 \begin{frame}
 \frametitle{Rings}
 \[
-    (E, \cdot, +)
+    (E, \cdot, +, 0, 1)
 \]
-St.
+Group + multiplication, e.i.
 \[
-    e_{1} \cdot (e_{2} + e_{3})
+    z \cdot (x + y)
     =
-    e_{1} \cdot e_{2}
+    z \cdot x
     +
-    e_{1} \cdot e_{3}
+    z \cdot y
 \]
 \[
-    \forall e_{1} :
-    \exists e_{2} :
-    e_{1} + e_{2} = 0
+    \forall x :
+    \exists y :
+    x + y = 0
 \]
+\[
+    \forall x :
+    x + 0 = x
+\]
+\[
+    \forall x :
+    x \cdot 1 = x
+\]
+Examples:
+\[
+    \mathbb{Z}
+\]
+Question: How about $\mathbb{N}_{\geq 0}$?
+\end{frame}
+
+\begin{frame}
+\frametitle{Fields}
+\[
+    (E, \cdot, +, 0, 1)
+\]
+Ring + multiplicative inverses, e.i.
+\[
+    \forall x \neq 0 : \exists y : x \cdot y = 1
+\]
+Usually denote $y = x^{-1}$. \\
+Examples:
+\[
+    \mathbb{Q}, \mathbb{R}
+\]
+Question: How about $\mathbb{Z}$?
+\end{frame}
+
+\begin{frame}
+\frametitle{Finite fields}
+We will primarily be dealing with the field of two elements:
+$1, 0$ \\
+Where:
+\begin{align}
+    1 \cdot x &= x \text{ : 1 is the multiplicative identity} \\
+    0 + x     &= x \text{ : 0 is the additive identity} \\
+    1 + 1     &= 0 \text{ : the field has characteristic 2}
+\end{align}
+No magic.
+Question:
+If considered like bits, what common operations does
+addition and multiplication in the field correspond to?
+What implication does it have for bit-slicing techniques?
+\end{frame}
+
+\begin{frame}
+\frametitle{Polynomials over fields}
+Given a field. We may consider the polynomials over the field. \\
 Examples:
 \[
     \mathbb{Z}
@@ -235,7 +287,7 @@ So $mult_{H}(\cdot) : GF(2^{128}) \to GF(2^{128})$ \\
 Break?
 \end{frame}
 
-\begin{frame}
+\begin{frame}[fragile]
 \frametitle{Galois Counter Mode (MAC calculation)}
 Authentication key $H \in GF(2^{128})$. \\
 Output blocks: $ct_{1}, ct_{2}, \ldots, ct_{n}$ (last padded with zero) \\
@@ -249,7 +301,13 @@ Basically:
 
 \vspace{3mm}
 
-Finally add a random (deterministically generated element) $E_{k}$
+Finally add a random (encrypted nonce \verb!||! 0): $E_{k}$
+\end{frame}
+
+\begin{frame}
+\begin{center}
+\includegraphics[height=0.9\textheight]{mode-gcm.png}
+\end{center}
 \end{frame}
 
 \begin{frame}
@@ -298,7 +356,7 @@ Subtract:
     &=(c_{1} H^{n} + \ldots + c_{n} H^{2} + c_{n+1} H^{1} + w(H)) + \\
     & \ \ \ \ (c'_{1} H^{m} + \ldots + c'_{m} H^{2} + c'_{m+1} H^{1} + w'(H))
 \end{align}
-So $H$ is a root of $(w(y) - T) - (w'(y) - T)$. Easy?
+So $H$ is a root of $(w(y) - T) - (w'(y) - T')$. Easy?
 \end{frame}
 
 \begin{frame}
