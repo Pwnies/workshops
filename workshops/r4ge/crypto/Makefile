@@ -1,0 +1,8 @@
+inner.c: gen.py
+	python gen.py > inner.c
+
+inner.out: inner.c
+	gcc -fPIE inner.c -o inner.out
+
+code.c: build.py inner.c
+	python build.py > code.c
