@@ -1,0 +1,6 @@
+FROM debian:stretch
+
+RUN apt-get update
+RUN apt-get install -qy gcc
+
+CMD cd /build && gcc example.c -o example -no-pie -fno-stack-protector -zexecstack
