@@ -12,8 +12,8 @@ this includes:
 |------------|------------|--------------------------------------------------------------------|----------------------------------------------------|
 | 2017-12-21 | rot256     | GCM; The illegal attack                                            | [workshops/gcm/README.md](workshops/gcm/README.md) |
 | 2018-01-11 | kriztw     | Intro: Shellcode and binary exploitation                           | [workshops/binary\_intro/README.md](workshops/binary_intro/README.md) |
-| 2018-02-01 | Kokjo      | Automatic ROP chain generation                                     | TODO                                               |
-| 2018-02-08 | rot256     | Radare; Symbolic is all the [r4ge](https://github.com/gast04/r4ge) | TODO                                               |
+| 2018-02-08 | Kokjo      | Automatic ROP chain generation                                     | TODO                                               |
+| 2018-02-15 | rot256     | Radare; Symbolic is all the [r4ge](https://github.com/gast04/r4ge) | TODO                                               |
 |        TBA | rot256     | Heaps of fun; exploiting glibc and beyond                          | TODO                                               |
 |        TBA | rot256 + ? | Reverse engineering [EVM](https://en.wikipedia.org/wiki/Ethereum#Architecture) code (Ethereum)                             | TODO                                               |
 | xxxx-yy-zz | you?       |                                                                    |                                                    |
