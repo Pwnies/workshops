@@ -1,5 +1,3 @@
-
-
 s = 'flag{GoAheadDecrypt}'
 s = map(ord, s)
 
@@ -37,9 +35,9 @@ for i in range(40):
     random.shuffle(idx)
     v = idx[:random.randrange(1, 6)]
     t = random.randrange(0, 256)
-    lines.append('v |= %s;' % line(v, [t]))
+    lines.append('    v |= %s;' % line(v, [t]))
 
-lines.append('return !v;')
+lines.append('    return !v;')
 lines.append('}')
 lines.append('''
 int main(int argc, char** argv) {
