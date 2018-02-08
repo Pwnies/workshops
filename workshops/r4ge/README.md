@@ -27,6 +27,21 @@ We will requiring the following software for the workshop:
 - [r2pipe](https://github.com/radare/radare2-r2pipe)
 - python2.7
 
-Alternatively there is a docker image, if you want to keep your system bloat-free:
+The recommended method is by using the docker image, if you want to keep your system bloat-free.
 
-<< There will be a docker image >>
+First install [docker](https://docs.docker.com/install/) if you have not. For the lazy:
+
+```sh
+curl -fsSL get.docker.com -o get-docker.sh
+# you will totally read this shell file before running it...
+sudo sh get-docker.sh
+sudo usermod -aG docker your-user
+```
+
+To build the docker image:
+
+```sh
+git clone https://github.com/Pwnies/workshops
+cd workshops/workshops/r4ge/docker
+./run.sh # builds docker image and runs an interactive shell
+```
