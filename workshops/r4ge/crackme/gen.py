@@ -23,11 +23,11 @@ lines.append('''
 int check(char* s) {
     int l = 0;
     for (;s[l]; l++);
-    if (l != 20)
+    if (l != %d)
         return -1;
 
     int v = 0;
-''')
+''' % len(s))
 
 
 for i in range(40):
