@@ -24,7 +24,7 @@ int check(char* s) {
     int l = 0;
     for (;s[l]; l++);
     if (l != 20)
-        return 0;
+        return -1;
 
     int v = 0;
 ''')
@@ -37,11 +37,12 @@ for i in range(40):
     t = random.randrange(0, 256)
     lines.append('    v |= %s;' % line(v, [t]))
 
-lines.append('    return !v;')
+lines.append('    return v;')
 lines.append('}')
 lines.append('''
+#include <stdio.h>
 int main(int argc, char** argv) {
-    if (check(argv[1]))
+    if (check(argv[1]) == 0)
         printf("ok\\n");
     return 0;
 }

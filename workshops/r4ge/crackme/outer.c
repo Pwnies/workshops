@@ -62,7 +62,7 @@ int main(int argc, char** argv) {
     // check flag
 
     int ret = ((int (*)(char*)) (sandbox + 2))(argv[1]);
-    if (ret) {
+    if (ret == 0) {
         printf("nice flag\n");
     } else {
         printf("bad flag\n");

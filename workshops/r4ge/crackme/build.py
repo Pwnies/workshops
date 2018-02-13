@@ -23,13 +23,19 @@ c += [0] * (8 - len(c) % 8)
 import os
 import xtea
 
-key = '\x00' * 12 + os.urandom(3) + '\x00'
 
-print '// key : %s' % key.encode('hex')
 
 pt  = ''.join(map(chr, c))
-xt  = xtea.new(key, mode=xtea.MODE_ECB, endian='<')
-ct  = xt.encrypt(pt)
+
+while 1:
+    key = '\x00' * 12 + os.urandom(3) + '\x00'
+    xt  = xtea.new(key, mode=xtea.MODE_ECB, endian='<')
+    ct  = xt.encrypt(pt)
+
+    if  ct.startswith('\x00'):
+        break
+
+print '// key : %s' % key.encode('hex')
 
 xtT = xtea.new(key, mode=xtea.MODE_ECB, endian='<')
 ptT = xt.decrypt(ct)
