@@ -20,7 +20,7 @@ clean:
 	rm -f inner.out
 	rm -f code.c
 
-upload: obf obf-hard
-	scp obf obf-hard hugo@rot256.io:~/public
+upload: obf obf-hard inner.c outer.c
+	scp inner.c outer.c obf obf-hard hugo@rot256.io:~/public
 
 .PHONY: clean upload
