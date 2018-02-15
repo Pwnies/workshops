@@ -1,5 +1,5 @@
 obf: outer.c build.py code.c
-	gcc -std=gnu99 outer.c -o obf
+	gcc -std=gnu99 outer.c -o obf -fno-pie
 
 inner.c: gen.py
 	python gen.py > inner.c
