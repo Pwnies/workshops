@@ -51,21 +51,23 @@ proj = angr.Project(load)
 
 # store flag
 
-size = 0x14
+size = 64 # some upper bound
 flag = claripy.BVS('flag', (size + 1) * 8)
 st   = proj.factory.call_state(0x0, flag, ret_addr=0xdeadbeef)
 
-for i in range(size):
-    st.solver.add(flag.get_byte(i) != 0)
+# needed to prevent the loop going into undefined memory
 st.solver.add(flag.get_byte(size) == 0)
 
 simgr = proj.factory.simgr(st)
 
 while simgr.active:
-
+    print simgr
     for s in simgr.active:
         if s.addr == 0xdeadbeef:
             s.solver.add(s.regs.eax == 0)
-            print s.solver.eval(flag, cast_to=str)
-
+            try:
+                print s.solver.eval(flag, cast_to=str)
+                exit(0)
+            except:
+                pass
     simgr.step()
