@@ -1,0 +1,234 @@
+\documentclass{beamer}
+
+
+% Add
+%  -- generation of authentication key (H)
+%  -- field & ring definitions
+
+\usepackage{graphicx}
+\usepackage{listings}
+\usepackage{color}
+\usepackage[utf8]{inputenc}
+
+\definecolor{mygreen}{rgb}{0,0.6,0}
+\definecolor{mygray}{rgb}{0.5,0.5,0.5}
+\definecolor{mymauve}{rgb}{0.58,0,0.82}
+
+\lstset{
+backgroundcolor=\color{white},   % choose the background color
+basicstyle=\footnotesize\ttfamily,
+  breaklines=true,                 % automatic line breaking only at whitespace
+  captionpos=b,                    % sets the caption-position to bottom
+  commentstyle=\color{mygreen},    % comment style
+  escapeinside={\%*}{*)},          % if you want to add LaTeX within your code
+  keywordstyle=\color{blue},       % keyword style
+  stringstyle=\color{mymauve},     % string literal style
+}
+
+\title{Introduction to radare2 and symbolic execution}
+\author{Mathias Hall-Andersen (rot256)}
+\institute{Pwnies @ Copenhagen University}
+\date{2018}
+
+\begin{document}
+
+\frame{\titlepage}
+
+\begin{frame}
+\frametitle{Before we start : Get the software}
+\textbf{Instructions at} \\
+{\small \url{github.com/Pwnies/workshops/tree/master/workshops/r4ge}}
+\end{frame}
+
+\begin{frame}
+\frametitle{Plan}
+\begin{enumerate}
+    \item Static analysis using r2 and introduction to r2pipe
+    \item Handout crackme
+    \item Work session (static analysis of the first stage of the crackme)
+    \item Dynamic analysis using r2
+    \item Work session (extracting the second stage of the crackme)
+    \item Symbolic execution using angr and r4ge
+    \item Work session (solving the final stage of the crackme)
+\end{enumerate}
+\end{frame}
+
+\begin{frame}
+\frametitle{Radare2 : Static analysis}
+
+
+
+
+\end{frame}
+
+\begin{frame}
+\frametitle{Work session 1 : Static analysis}
+Obtain the crackme: \\
+
+\vspace{3mm}
+
+\texttt{curl --output ./obf https://rot256.io/obf} \\
+\texttt{curl --output ./obf https://rot256.io/obf-hard}
+
+\vspace{3mm}
+
+Then \texttt{r2 -d ./obf}
+
+\vspace{3mm}
+
+Cheatsheet (all commands you should need):
+
+\vspace{3mm}
+
+\begin{tabular}{l | l}
+    Run analysis         & aaa \\
+    Help page            & af? (and a?) \\
+    Disassemble function & pdf sym.main \\
+    Visual mode          & VV, t / f / TAB / hjkl to navigate graph \\
+    Rename variable      & afvn [old name] [new name] \\
+    Command in visual mode & Shift + :
+\end{tabular}
+
+\vspace{3mm}
+
+\textbf{Goal:} Uncover the functionality in "main".
+
+\end{frame}
+
+\begin{frame}
+\frametitle{Radare2 : Dynamic analysis}
+\end{frame}
+
+\begin{frame}
+\frametitle{Work session 2 : Dynamic analysis}
+
+\vspace{3mm}
+
+\begin{tabular}{l | l}
+    Help page        & d? \\
+    Restart program  & doo \\
+    Set breakpoint   & db [addr] \\
+    Continue         & dc \\
+    Step             & s / S \\
+\end{tabular}
+
+\vspace{3mm}
+
+You might have to: "\texttt{e asm.bits = 64}". \\
+
+\vspace{3mm}
+
+\textbf{Goal:} Extract / inspect inner code (encrypted function):
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Symbolic execution; a simple example}
+\begin{lstlisting}[language=C]
+int main(int argc, char* argv[]) {
+    if (argc != 2) return -1;
+
+    char *a = argv[1];
+
+    int ok = 1;
+    ok &= (a[0] == 1);
+    ok &= (a[1] == 1);
+    for (int n = 2; n < 10; n++)
+        ok &= (a[n] == a[n - 1] + a[n - 2]);
+
+    if (ok) printf("fibulous\n"); // <- how?
+}
+\end{lstlisting}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Symbolic execution; angr, a simple example}
+\begin{lstlisting}[language=python]
+import angr
+import claripy
+
+arg1 = claripy.BVS('arg1', 8 * 10)
+proj = angr.Project('./fib')
+
+st = proj.factory.entry_state(args=['./fib', arg1])
+sm = proj.factory.simulation_manager(st)
+sm.explore()
+
+print sm.deadended
+
+for state in sm.deadended:
+    a = state.solver.eval(arg1, cast_to=str)
+    print a.encode('hex'), map(ord, a)
+\end{lstlisting}
+\end{frame}
+
+
+\begin{frame}[fragile]
+\frametitle{Symbolic execution; a more complicated example}
+\begin{lstlisting}[language=C]
+struct node_t {
+    int v; struct node_t* l; struct node_t* r;
+} node_t;
+
+int walk(struct node_t* n, int k) {
+    if (n->v > k && n->l != 0) return walk(n->l, k);
+    if (n->r != 0) return walk(n->r, k);
+    return n->v;
+}
+
+int check(int value) {
+    struct node_t d = { .v =  42, .l = 0, .r = 0};
+    struct node_t c = { .v =   1, .l = 0, .r = 0};
+    struct node_t b = { .v = -10, .l = 0, .r = &d};
+    struct node_t a = { .v =   0, .l = &b, .r = &c};
+    return walk(&a, value) == 42; // <- how?
+}
+
+int main(int argc, char* argv[]) {
+    return check(*((int*)argv[1]));
+}
+\end{lstlisting}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Symbolic execution; angr, a more complicated example}
+\begin{lstlisting}[language=python]
+import angr
+import struct
+import claripy
+
+value = claripy.BVS('value', 32)
+proj  = angr.Project('./tree')
+check = proj.loader.find_symbol('check')
+st    = proj.factory.call_state(
+    check.rebased_addr, value, ret_addr=0xdeadbeef)
+simgr = proj.factory.simgr(st)
+
+while simgr.active:
+    for s in simgr.active:
+        if s.addr == 0xdeadbeef:
+            s.solver.add(s.regs.eax == 1)
+            try:
+                v = s.solver.eval(value, cast_to=str)
+                print struct.unpack('i', v)[0]
+            except:
+                pass
+    simgr.step()
+\end{lstlisting}
+\end{frame}
+
+\begin{frame}
+\frametitle{Symbolic execution; r4ge}
+\end{frame}
+
+\begin{frame}
+\frametitle{Work session 3 : Symbolic execution}
+Two options:
+
+\begin{enumerate}
+    \item Use \texttt{r2pipe} to extract the code and use angr from python.
+    \item Use the \texttt{r4ge} plug-in directly from r2.
+\end{enumerate}
+
+\end{frame}
+
+\end{document}
