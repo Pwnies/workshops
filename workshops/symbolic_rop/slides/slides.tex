@@ -27,13 +27,16 @@ basicstyle=\footnotesize\ttfamily,
 
 \begin{document}
 
+
 \frame{\titlepage}
+
 
 \begin{frame}
     \frametitle{Before we start : Get the software}
     \textbf{Instructions at} \\
     {\small \url{github.com/Pwnies/workshops/tree/master/workshops/symbolic\_rop}}
 \end{frame}
+
 
 \begin{frame}
     \frametitle{Plan}
@@ -48,6 +51,7 @@ basicstyle=\footnotesize\ttfamily,
         \item Exercise 4: Repeat exercise 1 using high powered machinery.
     \end{itemize}
 \end{frame}
+
 
 \begin{frame}
     \frametitle{ROP: Attack scenario}
@@ -88,6 +92,7 @@ basicstyle=\footnotesize\ttfamily,
     \end{center}
 \end{frame}
 
+
 \begin{frame}
     \frametitle{ROP: x86 example (cont.)}
     Call \texttt{foo(1337, 42)} then \texttt{bar(31337)}.
@@ -105,6 +110,7 @@ basicstyle=\footnotesize\ttfamily,
     \end{center}
 \end{frame}
 
+
 \begin{frame}
     \frametitle{ROP: another x86 example}
     Call \texttt{gets(buffer)} then \texttt{system(buffer)}
@@ -119,6 +125,7 @@ basicstyle=\footnotesize\ttfamily,
     \end{center}
     \pause We can 'compress' certain call sequences...
 \end{frame}
+
 
 \begin{frame}
     \frametitle{ROP: amd64 example}
@@ -141,6 +148,7 @@ basicstyle=\footnotesize\ttfamily,
     \end{center}
 \end{frame}
 
+
 \begin{frame}
     \frametitle{ROP amd64 example (cont.)}
     Call \texttt{foo(1337, 42)} then \texttt{bar(31337)}.
@@ -160,18 +168,72 @@ basicstyle=\footnotesize\ttfamily,
 
 
 \begin{frame}
+    \frametitle{ROP - exercises}
+    \begin{center}
+        {\Huge Exercises!}
+    \end{center}
+    Have a look at \texttt{rop\_playground.*} \\
+    Hint: Use \texttt{ROPgadget} to find gadgets.
+\end{frame}
+
+
+\begin{frame}[fragile]
     \frametitle{SAT sovler}
 
-    Idea:
     \begin{enumerate}
-        \item We have some varibles (eg. $x$ and $y$)
-        \item ... and some constraints (eg. $x = 3y$)
-        \item and we can concrete values for $x$ and $y$.
+        \pause \item We have some varibles (eg. $x$, $y$ and $z$)
+        \pause \item ... and some constraints (eg. $x > y z$ and $x < -10$)
+        \pause \item and we can concrete values for $x$ and $y$.
     \end{enumerate}
 
-    \begin{lstlisting}
+    \pause
+    \begin{lstlisting}[language=python]
+from z3 import *
+x = Int("x")
+y = Int("y")
+z = Int("z")
+solver = Solver()
+solver.add(x > y*z)
+solver.add(x < -10)
+assert solver.check() == sat
+print solver.model()
     \end{lstlisting}
-    
+
+    \pause
+    \begin{lstlisting}
+$ python z3_example.py 
+[x = -11, z = 1, y = -12]
+    \end{lstlisting}
+\end{frame}
+
+
+\begin{frame}
+    \frametitle{How z3 works internally}
+    \pause 
+    \begin{figure}[h]
+        \includegraphics[width=0.75\textwidth]{z3doge}
+    \end{figure}
+\end{frame}
+
+
+\begin{frame}
+    \frametitle{z3 - exercises}
+    \begin{center}
+        {\Huge Exercises!}
+    \end{center}
+    Have a look at \texttt{solve\_sudoku.py}
+\end{frame}
+
+
+\begin{frame}
+    \frametitle{Automatic ROP}
+    Rough sketch
+    \begin{itemize}
+        \item Find gadgets using the \texttt{ROPgadget} tool.
+        \item Analyse gadgets with Unicorn engine
+        \item Use z3 to 'chain' gadgets together
+        \item Use z3 to choose which gadgets to chain together.
+    \end{itemize}
 \end{frame}
 
 \end{document}
