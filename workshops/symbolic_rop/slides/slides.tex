@@ -1,0 +1,177 @@
+\documentclass{beamer}
+
+\usepackage{graphicx}
+\usepackage{listings}
+\usepackage{color}
+\usepackage[utf8]{inputenc}
+
+\definecolor{mygreen}{rgb}{0,0.6,0}
+\definecolor{mygray}{rgb}{0.5,0.5,0.5}
+\definecolor{mymauve}{rgb}{0.58,0,0.82}
+
+\lstset{
+backgroundcolor=\color{white},   % choose the background color
+basicstyle=\footnotesize\ttfamily,
+  breaklines=true,                 % automatic line breaking only at whitespace
+  captionpos=b,                    % sets the caption-position to bottom
+  commentstyle=\color{mygreen},    % comment style
+  escapeinside={\%*}{*)},          % if you want to add LaTeX within your code
+  keywordstyle=\color{blue},       % keyword style
+  stringstyle=\color{mymauve},     % string literal style
+}
+
+\title{Automatic ROP chain generation}
+\author{Jonas 'Kokjo' Rudloff }
+\institute{Pwnies @ Copenhagen University}
+\date{2018}
+
+\begin{document}
+
+\frame{\titlepage}
+
+\begin{frame}
+    \frametitle{Before we start : Get the software}
+    \textbf{Instructions at} \\
+    {\small \url{github.com/Pwnies/workshops/tree/master/workshops/symbolic\_rop}}
+\end{frame}
+
+\begin{frame}
+    \frametitle{Plan}
+    \begin{itemize}
+        \item Crash course in ROP for x86, amd64, arm, and mips.
+        \item Exercise 1: Manually write some rop chains.
+%        \item Introduction to Unicorn.
+%        \item Exercise 2: Execute some code using Unicorn.
+        \item Introduction to z3 and symbolic execution.
+        \item Exercise 3: Solve simple problems using z3.
+        \item Using z3 and Unicorn to automagically generating ROP chains.
+        \item Exercise 4: Repeat exercise 1 using high powered machinery.
+    \end{itemize}
+\end{frame}
+
+\begin{frame}
+    \frametitle{ROP: Attack scenario}
+    \begin{itemize}
+        \pause \item Have: A buffer overflow on the stack
+        \pause \item Want: The ability to call arbitary functions with arbitary arguments.
+    \end{itemize}
+\end{frame}
+
+
+\begin{frame}
+    \frametitle{ROP: General strategy}
+    \begin{enumerate}
+        \pause \item Chain small pieces of code together to manipulate cpu state.
+        \pause \item Make state look like a function call, jump to disired function.
+        \pause \item Repeat...
+    \end{enumerate}
+\end{frame}
+
+
+\begin{frame}
+    \frametitle{ROP: x86 example}
+
+    \pause Calling convention:
+    \begin{enumerate}
+        \item Push arguments to stack(last argument first).
+        \item Use \texttt{Call} instruction to push return address and jump to function.
+    \end{enumerate}
+    
+    \pause Stack layout on function entry
+    \begin{center}
+    \begin{tabular}{l|c}
+        ...     & More arguments \\
+        ESP + 8 & Argument 2 \\
+        ESP + 4 & Argument 1 \\
+        ESP + 0 & Return address \\
+    \end{tabular}
+    \end{center}
+\end{frame}
+
+\begin{frame}
+    \frametitle{ROP: x86 example (cont.)}
+    Call \texttt{foo(1337, 42)} then \texttt{bar(31337)}.
+    \pause
+    \begin{center}
+    \begin{tabular}{l|c}
+        ESP + 24 & 31337 \\
+        ESP + 20 & return address of bar \\
+        ESP + 16 & \texttt{bar} \\
+        ESP + 12 & 42 \\
+        ESP + 8  & 1337 \\
+        ESP + 4  & cleanup gadget: \texttt{pop eax; pop ebx; ret} \\
+        ESP + 0  & \texttt{foo}
+    \end{tabular}
+    \end{center}
+\end{frame}
+
+\begin{frame}
+    \frametitle{ROP: another x86 example}
+    Call \texttt{gets(buffer)} then \texttt{system(buffer)}
+    \pause
+    \begin{center}
+    \begin{tabular}{l|c}
+        ESP + 12 & \texttt{buffer} \\
+        ESP + 8  & \texttt{buffer} \\
+        ESP + 4  & \texttt{system} \\
+        ESP + 0  & \texttt{gets}
+    \end{tabular}
+    \end{center}
+    \pause We can 'compress' certain call sequences...
+\end{frame}
+
+\begin{frame}
+    \frametitle{ROP: amd64 example}
+    Calling convention:
+    \begin{enumerate}
+        \item Argument 1 in \texttt{RDI}
+        \item Arugment 2 in \texttt{RSI}
+        \item Argument 3 in \texttt{RDX}
+        \item Other arguments: some in registres, rest on the stack...\footnote{Not really relevant... Who calls functions with more than 3 arguments anyway?}
+        \item Return address on stack.
+    \end{enumerate}
+    \pause For example to call \text{foo(42, 1337)}
+    \pause we must have \texttt{RDI = 42}
+    \pause and \texttt{RSI = 1337}
+    \pause and the stack looking like:
+    \begin{center}
+    \begin{tabular}{l|c}
+        RSP + 0  & \texttt{Return address of foo}
+    \end{tabular}
+    \end{center}
+\end{frame}
+
+\begin{frame}
+    \frametitle{ROP amd64 example (cont.)}
+    Call \texttt{foo(1337, 42)} then \texttt{bar(31337)}.
+    \begin{center}
+    \begin{tabular}{l|c}
+        RSP + 56 & \texttt{bar} \\
+        RSP + 48 & 31137 \\
+        RSP + 40 & Gadget: \texttt{pop rdi; ret} \\
+        RSP + 32 & \texttt{foo} \\
+        RSP + 24 & 42 \\
+        RSP + 16 & Gadget: \texttt{pop rsi; ret} \\
+        RSP + 8  & 1337 \\
+        RSP + 0  & Gadget: \texttt{pop rdi; ret} \\
+    \end{tabular}
+    \end{center}
+\end{frame}
+
+
+\begin{frame}
+    \frametitle{SAT sovler}
+
+    Idea:
+    \begin{enumerate}
+        \item We have some varibles (eg. $x$ and $y$)
+        \item ... and some constraints (eg. $x = 3y$)
+        \item and we can concrete values for $x$ and $y$.
+    \end{enumerate}
+
+    \begin{lstlisting}
+    \end{lstlisting}
+    
+\end{frame}
+
+\end{document}
