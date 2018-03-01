@@ -57,7 +57,7 @@ basicstyle=\footnotesize\ttfamily,
     \frametitle{ROP: Attack scenario}
     \begin{itemize}
         \pause \item Have: A buffer overflow on the stack
-        \pause \item Want: The ability to call arbitary functions with arbitary arguments.
+        \pause \item Want: The ability to call arbitrary functions with arbitrary arguments.
     \end{itemize}
 \end{frame}
 
@@ -65,8 +65,8 @@ basicstyle=\footnotesize\ttfamily,
 \begin{frame}
     \frametitle{ROP: General strategy}
     \begin{enumerate}
-        \pause \item Chain small pieces of code together to manipulate cpu state.
-        \pause \item Make state look like a function call, jump to disired function.
+        \pause \item Chain small pieces of code together to manipulate CPU state.
+        \pause \item Make the state look like a function call, jump to desired function.
         \pause \item Repeat...
     \end{enumerate}
 \end{frame}
@@ -132,9 +132,9 @@ basicstyle=\footnotesize\ttfamily,
     Calling convention:
     \begin{enumerate}
         \item Argument 1 in \texttt{RDI}
-        \item Arugment 2 in \texttt{RSI}
+        \item Argument 2 in \texttt{RSI}
         \item Argument 3 in \texttt{RDX}
-        \item Other arguments: some in registres, rest on the stack...\footnote{Not really relevant... Who calls functions with more than 3 arguments anyway?}
+        \item Other arguments: some in registries, rest on the stack...\footnote{Not really relevant... Who calls functions with more than 3 arguments anyway?}
         \item Return address on stack.
     \end{enumerate}
     \pause For example to call \text{foo(42, 1337)}
@@ -168,7 +168,7 @@ basicstyle=\footnotesize\ttfamily,
 
 
 \begin{frame}
-    \frametitle{ROP - exercises}
+    \frametitle{ROP - Exercises}
     \begin{center}
         {\Huge Exercises!}
     \end{center}
@@ -178,10 +178,10 @@ basicstyle=\footnotesize\ttfamily,
 
 
 \begin{frame}[fragile]
-    \frametitle{SAT sovler}
+    \frametitle{SAT solver}
 
     \begin{enumerate}
-        \pause \item We have some varibles (eg. $x$, $y$ and $z$)
+        \pause \item We have some variables (eg. $x$, $y$ and $z$)
         \pause \item ... and some constraints (eg. $x > y z$ and $x < -10$)
         \pause \item and we can concrete values for $x$ and $y$.
     \end{enumerate}
@@ -200,10 +200,10 @@ print solver.model()
     \end{lstlisting}
 
     \pause
-    \begin{lstlisting}
-$ python z3_example.py 
-[x = -11, z = 1, y = -12]
-    \end{lstlisting}
+%    \begin{lstlisting}
+%$ python z3_example.py 
+%[x = -11, z = 1, y = -12]
+%    \end{lstlisting}
 \end{frame}
 
 
@@ -227,12 +227,119 @@ $ python z3_example.py
 
 \begin{frame}
     \frametitle{Automatic ROP}
-    Rough sketch
+    Rough sketch:
     \begin{itemize}
-        \item Find gadgets using the \texttt{ROPgadget} tool.
+        \item Find gadgets using the \texttt{ROPgadget} tool 
         \item Analyse gadgets with Unicorn engine
         \item Use z3 to 'chain' gadgets together
-        \item Use z3 to choose which gadgets to chain together.
+        \item Use z3 to 'choose' which gadgets to chain together
+    \end{itemize}
+\end{frame}
+
+
+\begin{frame}
+    \frametitle{Automatic ROP - Unicorn analysis}
+    Idea:
+    \begin{itemize}
+        \item We don't need a full description of what a gadget is doing
+        \item It's easier to write emulators than symbolic execution engines
+        \item Let just run our gadgets, and guess what they are doing
+        \item Information we are interested in:
+            \begin{itemize}
+                \item Pops from the stack.
+                \item Moves between registres.
+                \item Addition to the stack pointer with a small constant
+            \end{itemize}
+        \item Implemented gadgets in z3 based on guess.
+    \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+    \frametitle{Automatic ROP - Gadget description}
+    Example: \texttt{pop rdx; pop rdi; mov rax, rcx; ret} \\
+    Pseudocode:
+    \begin{lstlisting}[language=python]
+def gadget(input_state):
+    output_state = copy(input_state)
+    output_state[rdx] = input_state[stack][0:8]
+    output_state[rdi] = input_state[stack][8:16]
+    output_state[rax] = input_state[rcx]
+    output_state[rip] = input_state[stack][16:24]
+    output_state[rsp] = input_state[rsp] + 24
+    output_state[stack] = output_state[stack][24:] 
+    return output_state
+    \end{lstlisting}
+    This can easily be generalised and automated for other gadgets.
+\end{frame}
+
+\begin{frame}[fragile]
+    \frametitle{Automatic ROP - Gadget chaining using z3}
+    
+    Given 2 gadgets we want to chain them. Idea:
+    \begin{itemize}
+        \item Convert both gadgets to z3.
+        \item Add constraints such that input of the second gadget is the output from the first gadget
+        \item Add constraints to instruction pointer such that the first gadget will continue into the next.
+    \end{itemize}
+
+    Pseudocode:
+    \begin{lstlisting}[language=python]
+state0 = initial_state()
+solver.add(state0[rip] == address_of_gadget_0)
+state1 = gadget_0(state0)
+solver.add(state1[rip] == address_of_gadget_1)
+state2 = gadget_1(state1)
+    \end{lstlisting}
+    Note: We can chain multiple gadgets this way.
+\end{frame}
+
+\begin{frame}[fragile]
+    \frametitle{Automatic ROP - Choosing Gadgets}
+
+    Given 2 gadgets $g_1$ and $g_2$ we want to choose one of them. Idea:
+    \begin{itemize} 
+        \item Convert both gadget to z3.
+        \item Given a state $s$, apply both gadgets $s_1 = g_1(s)$ and $s_2 = g_2(s)$.
+        \item Merge the two states, by adding constraints forcing a choice between the gadgets.
+    \end{itemize}
+    
+    Pseudocode:
+    \begin{lstlisting}[language=python]
+s = initial_state()
+s1 = gadget_1(state)
+s2 = gadget_2(state)
+
+s3 = new_unconstrained_state()
+foreach reg in s3:
+  solver.add(if s[rip]==addr1 then s3[reg]==s1[reg])
+  solver.add(if s[rip]==addr2 then s3[reg]==s2[reg])
+
+solver.add(s[rip] == addr1 or s[rip] == addr1)
+    \end{lstlisting}
+    Note: This can be generalized to choosing between multiple gadgets.
+\end{frame}
+
+
+\begin{frame}
+    \frametitle{Automatic ROP - Constructing ROP chains automatically}
+    Idea:
+    \begin{itemize}
+        \pause \item Given a set of gadgets $G = \{g_0, g_1, \ldots\}$.
+        \pause \item Create a combined gadget $g_S$ which chooses between them.
+        \pause \item Chain multiple instances of $g_S$ together.
+        \pause \item Add constraints for calling functions.
+    \end{itemize}
+\end{frame}
+
+
+
+\begin{frame}
+    \frametitle{Future work}
+    \begin{itemize}
+        \item Support for more architectures
+        \item MCTS for gadget analysis (34C3: Lets break modern binary code obfuscation)
+        \item Better support for finding gadgets (ROPgadget is great tool, but a really bad library)
+        \item Replace Pwntools's ROP module
     \end{itemize}
 \end{frame}
 
